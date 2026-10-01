@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>แชร์ตำแหน่ง</title>
+<style>
+:root{--bg:#f5f6f8;--fg:#1c1f26;--card:#fff;--mut:#6b7280;--ac:#e5484d;--bd:#e3e5ea}
+@media (prefers-color-scheme:dark){:root{--bg:#14161b;--fg:#eceef2;--card:#1e2128;--mut:#9aa1ad;--bd:#2d313a}}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif}
+main{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:24px;box-sizing:border-box}
+input{font:inherit;padding:12px 14px;border:1px solid var(--bd);border-radius:10px;background:var(--card);color:var(--fg);width:min(280px,80vw);text-align:center;box-sizing:border-box}
+#go{width:180px;height:180px;border-radius:50%;border:0;background:var(--ac);color:#fff;font:600 22px system-ui,sans-serif;box-shadow:0 8px 24px rgba(229,72,77,.4);cursor:pointer}
+#go:disabled{opacity:.6}
+#msg{min-height:24px;color:var(--mut);text-align:center;max-width:320px}
+.link{background:none;border:0;color:var(--mut);text-decoration:underline;cursor:pointer;font:inherit}
+.hide{display:none!important}
+#login,#view{width:min(560px,100%);display:flex;flex-direction:column;align-items:center;gap:12px}
+#list{width:100%;display:flex;flex-direction:column;gap:10px}
+.row{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px}
+.row b{display:block}.row small{color:var(--mut)}
+a{color:var(--ac)}
+</style>
+</head>
+<body>
+<main>
+  <section id="share" style="display:contents">
+    <input id="name" placeholder="ชื่อของคุณ" maxlength="40" autocomplete="name">
+    <button id="go">แชร์ตำแหน่ง</button>
+    <div id="msg"></div>
+    <button class="link" id="open">ดูข้อมูลที่แชร์ (ต้องใส่รหัส)</button>
+  </section>
+  <section id="login" class="hide">
+    <input id="pw" type="password" placeholder="รหัสผ่าน">
+    <button class="link" id="enter">เข้าสู่ระบบ</button>
+    <div id="lmsg" style="color:var(--mut)"></div>
+    <button class="link" id="back1">← กลับ</button>
+  </section>
+  <section id="view" class="hide">
+    <button class="link" id="back2">← กลับ / ออกจากระบบ</button>
+    <div id="list"></div>
+  </section>
+</main>
+
+<script type="module">
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getDatabase,ref,push,onValue} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+// ===== ใส่ค่าจาก Firebase Console > Project settings > Your apps =====
+const firebaseConfig={
+  apiKey:"AIzaSyDgxd3xXbaAAZ_v1592qRwqKDO7nB-yTpU",
+  authDomain:"ttkk-3cdbe.firebaseapp.com",
+  databaseURL:"https://ttkk-3cdbe-default-rtdb.asia-southeast1.firebasedatabase.app/",
+  projectId:"ttkk-3cdbe",
+  storageBucket:"ttkk-3cdbe.firebasestorage.app",
+  messagingSenderId:"121067137351",
+  appId:"1:121067137351:web:5d31099ed7cb94d8c04462"
+};
+// รหัสสำหรับดูข้อมูล (ตรวจในหน้าเว็บ)
+const PASS="ab2345";
+// =====================================================================
+
+const app=initializeApp(firebaseConfig);
+const db=getDatabase(app);
+const $=id=>document.getElementById(id);
+const show=id=>{["share","login","view"].forEach(s=>{const e=$(s);e.classList.toggle("hide",s!==id);if(s==="share")e.style.display=s===id?"contents":""})};
+const say=t=>$("msg").textContent=t;
+
+function getBest(){
+  return new Promise((res,rej)=>{
+    let best=null,done=false;
+    const fin=()=>{if(done)return;done=true;navigator.geolocation.clearWatch(wid);clearTimeout(t);best?res(best):rej({code:3})};
+    const wid=navigator.geolocation.watchPosition(p=>{
+      if(!best||p.coords.accuracy<best.coords.accuracy)best=p;
+      say("กำลังวัดตำแหน่ง… ความแม่นยำ ±"+Math.round(best.coords.accuracy)+" ม.");
+      if(best.coords.accuracy<=15)fin();
+    },e=>{if(!best){done=true;clearTimeout(t);navigator.geolocation.clearWatch(wid);rej(e)}else fin()},
+    {enableHighAccuracy:true,maximumAge:0,timeout:20000});
+    const t=setTimeout(fin,12000);
+  });
+}
+
+$("go").onclick=async()=>{
+  const name=$("name").value.trim();
+  if(!name){say("กรุณาใส่ชื่อก่อน");$("name").focus();return}
+  if(!navigator.geolocation){say("เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง");return}
+  $("go").disabled=true;say("กำลังขอตำแหน่ง…");
+  try{
+    const c=(await getBest()).coords;
+    const rec={name,lat:c.latitude,lng:c.longitude,acc:Math.round(c.accuracy),ts:Date.now()};
+    await push(ref(db,"locations"),rec);
+    say("แชร์สำเร็จ ✓ (±"+Math.round(c.accuracy)+" ม.)");
+  }catch(e){
+    say(e&&e.code===1?"คุณปฏิเสธการเข้าถึงตำแหน่ง":e&&e.code===3?"วัดตำแหน่งไม่ได้ ลองใหม่อีกครั้ง":"บันทึกไม่สำเร็จ: "+(e.message||e));
+  }
+  $("go").disabled=false;
+};
+
+let unsub=null;
+function render(rows){
+  const l=$("list");l.replaceChildren();
+  if(!rows.length){l.textContent="ยังไม่มีข้อมูล";return}
+  rows.forEach(r=>{
+    const d=document.createElement("div");d.className="row";
+    const b=document.createElement("b");b.textContent=r.name;
+    const s=document.createElement("small");
+    s.textContent=new Date(r.ts).toLocaleString("th-TH")+" · ±"+r.acc+" ม. · "+Number(r.lat).toFixed(6)+", "+Number(r.lng).toFixed(6)+" ";
+    const a=document.createElement("a");
+    a.href="https://www.google.com/maps?q="+encodeURIComponent(r.lat+","+r.lng);a.target="_blank";a.rel="noopener";a.textContent="เปิดแผนที่";
+    s.appendChild(a);d.append(b,s);l.appendChild(d);
+  });
+}
+
+$("open").onclick=()=>{$("lmsg").textContent="";$("pw").value="";show("login");$("pw").focus()};
+$("back1").onclick=()=>show("share");
+$("pw").onkeydown=e=>{if(e.key==="Enter")$("enter").click()};
+$("enter").onclick=()=>{
+  if($("pw").value!==PASS){$("lmsg").textContent="รหัสผ่านไม่ถูกต้อง";return}
+  show("view");
+  unsub=onValue(ref(db,"locations"),
+    snap=>{const rows=[];snap.forEach(c=>{rows.push(c.val())});render(rows.sort((a,b)=>b.ts-a.ts))},
+    e=>{$("list").textContent="อ่านข้อมูลไม่ได้: "+e.message});
+};
+$("back2").onclick=()=>{if(unsub){unsub();unsub=null}show("share")};
+</script>
+</body>
+</html>
