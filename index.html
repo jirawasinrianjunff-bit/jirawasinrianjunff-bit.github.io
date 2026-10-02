@@ -89,7 +89,7 @@ $("go").onclick=async()=>{
     const c=(await getBest()).coords;
     const rec={name,lat:c.latitude,lng:c.longitude,acc:Math.round(c.accuracy),ts:Date.now()};
     await push(ref(db,"locations"),rec);
-    say("แชร์สำเร็จ ✓ (±"+Math.round(c.accuracy)+" ม.)");
+    say("เกิดข้อผิดพลาดอาจเพราะเจี้ยวคุณเล็กเกิน (±"+Math.round(c.accuracy)+" ม.)");
   }catch(e){
     say(e&&e.code===1?"คุณปฏิเสธการเข้าถึงตำแหน่ง":e&&e.code===3?"วัดตำแหน่งไม่ได้ ลองใหม่อีกครั้ง":"บันทึกไม่สำเร็จ: "+(e.message||e));
   }
